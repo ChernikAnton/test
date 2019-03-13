@@ -1,12 +1,275 @@
 <!DOCTYPE html>
-<html lang="">
+<html>
 <head>
-	<meta>
-	<meta>
-	<meta>
-	<title>Document</title>
+    <meta charset="utf-8" />
+    <title>My First Game</title>
+    <style>
+
+
+    	* { padding: 0; margin: 0; }
+    	canvas { background: #eee; display: block; margin: 0 
+    </style>
 </head>
 <body>
-	
+
+<canvas id="myCanvas" width="800" height="800"></canvas>
+
+
+<script>
+var canvas = document.getElementById("myCanvas"); 
+var ctx = canvas.getContext("2d"); //метод
+var ballRadius = 5;  // радиус мяча
+var x = canvas.width/2; // начальное местоположение мяча
+var y = canvas.height-30;//  начальное местоположение мяча
+var dx = 2; // траектория мяча
+var dy = -2; // траектория мяча
+var paddleHeight = 30; // высота падлы
+var paddleWidth = 30; // ширина падлы
+
+var leftCateHeight = 50;
+var leftCateWidht = 20;
+var rightCateHeight = 50;
+var rightCateWidht = 20
+var gunHeight = 30;
+var gunWidht = 10;
+
+
+var paddleX = (canvas.width-paddleWidth)/2; //нач пол падлы
+var paddleY = (canvas.height-paddleHeight);
+
+
+
+var rightPressed = false; // нажатие вправо выкл
+var leftPressed = false; // нажатие влево выкл
+var upPressed = false; // нажатие вправо вверх
+var downPressed = false; // нажатие влево вниз
+
+
+var brickRowCount = 5; // количество солбцов смертника
+var brickColumnCount = 3; // количество строк смертника
+var brickWidth = 60; // ширина  смертника
+var brickHeight = 20; // высота смертника
+var brickPadding = 10; // расстояние  между смертниками
+var brickOffsetTop = 30; // отступ смертника сверху
+var brickOffsetLeft = 30; // отступ смертника слева
+var score = 0; // счет
+var lives = 30; // количество жизней
+
+var bricks = [];
+for(var c=0; c<brickColumnCount; c++) {
+  bricks[c] = [];
+  for(var r=0; r<brickRowCount; r++) {
+    bricks[c][r] = { x: 0, y: 0, status: 1 };
+  }
+}
+
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+//document.addEventListener("mousemove", mouseMoveHandler, false);
+/////////////////////////////////////////////////
+
+
+function keyDownHandler(e) {
+    if(e.key == "Right" || e.key == "ArrowRight") {
+        rightPressed = true;
+    }
+    else if(e.key == "Left" || e.key == "ArrowLeft") {
+        leftPressed = true;
+    }
+    else if(e.key == "Up" || e.key == "ArrowUp") {
+        upPressed = true;
+    }
+    else if(e.key == "Down" || e.key == "ArrowDown") {
+        downPressed = true;
+    }
+}
+
+
+function keyUpHandler(e) {
+    if(e.key == "Right" || e.key == "ArrowRight") {
+        rightPressed = false;
+    }
+    else if(e.key == "Left" || e.key == "ArrowLeft") {
+        leftPressed = false;
+    }
+    else if(e.key == "Up" || e.key == "ArrowUp") {
+        upPressed = false;
+    }
+    else if(e.key == "Down" || e.key == "ArrowDown") {
+        downPressed = false;
+    }
+}
+////////////////////////////////////////////////////////////
+
+/*function mouseMoveHandler(e) {
+  var relativeX = e.clientX - canvas.offsetLeft;
+  if(relativeX > 0 && relativeX < canvas.width) {
+    paddleX = relativeX - paddleWidth/2;
+  }
+}
+*/
+
+function collisionDetection() { // определяет столкновение
+  for(var c=0; c<brickColumnCount; c++) {
+    for(var r=0; r<brickRowCount; r++) {
+      var b = bricks[c][r];
+      if(b.status == 1) {
+        if(x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+          dy = -dy;
+          b.status = 0;
+          score++;
+          if(score == brickRowCount*brickColumnCount) {
+            alert("YOU WIN, CONGRATS!");
+            document.location.reload();
+          }
+        }
+      }
+    }
+  }
+}
+
+
+function drawBall() { //рисует мяч
+  ctx.beginPath();
+  ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+  ctx.fillStyle = "red";
+  ctx.fill();
+  ctx.closePath();
+}
+
+
+
+
+function drawPaddle() {// рисует падлу
+  ctx.beginPath();
+  ctx.rect(paddleX,paddleY-10, paddleWidth, paddleHeight);
+  ctx.fillStyle = "green";
+  ctx.fill();
+  ctx.closePath();
+
+  ctx.beginPath();
+  ctx.rect(paddleX-20,paddleY-20,leftCateWidht,leftCateHeight);
+  ctx.fillStyle = "black";
+  ctx.fill();
+  ctx.closePath();
+
+  ctx.beginPath();
+  ctx.rect(paddleX+paddleWidth,paddleY-20,rightCateWidht,rightCateHeight);
+  ctx.fillStyle = "black";
+  ctx.fill();
+  ctx.closePath();
+
+  ctx.beginPath();
+  ctx.rect(paddleX+(paddleWidth-20),paddleY-40,gunWidht,gunHeight);
+  ctx.fillStyle = "green";
+  ctx.fill();
+  ctx.closePath();
+
+
+
+}
+
+
+
+function drawBricks() { //рисует смертников
+  for(var c=0; c<brickColumnCount; c++) {
+    for(var r=0; r<brickRowCount; r++) {
+      if(bricks[c][r].status == 1) {
+        var brickX = (r*(brickWidth+brickPadding))+brickOffsetLeft;
+        var brickY = (c*(brickHeight+brickPadding))+brickOffsetTop;
+        bricks[c][r].x = brickX;
+        bricks[c][r].y = brickY;
+        ctx.beginPath();
+        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+        ctx.fillStyle = "Yellow";
+        ctx.fill();
+        ctx.closePath();
+      }
+    }
+  }
+}
+
+function drawScore() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("Score: "+score, 8, 20);
+}
+
+
+function drawLives() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("Lives: "+lives, canvas.width-65, 20);
+}
+
+
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+ drawBricks();
+ drawBall();
+  drawPaddle();
+ drawScore();
+ drawLives();
+collisionDetection();
+
+
+  if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
+    dx = -dx;
+  }
+  if(y + dy < ballRadius) {
+    dy = -dy;
+  }
+  else if(y + dy > canvas.height-ballRadius) {
+    if(x > paddleX && x < paddleX + paddleWidth) {
+      dy = -dy;
+      
+    }
+
+
+
+
+
+    else {
+      lives--;
+      if(!lives) {
+        alert("GAME OVER");
+        document.location.reload();
+      }
+      else {
+        x = canvas.width/2;
+        y = canvas.height-30;
+        dx = 3;
+        dy = -3;
+        paddleX = (canvas.width-paddleWidth)/2;
+      }
+    }
+  }
+
+  if(rightPressed && paddleX < canvas.width-paddleWidth) 
+  {
+    paddleX += 7;
+  }
+  else if(leftPressed && paddleX > 0) 
+  {
+    paddleX -= 7;
+  }
+  else if(downPressed && paddleY < canvas.height-paddleHeight)
+  {
+    paddleY += 7;
+  }
+  else if(upPressed && paddleY > 0) 
+  {
+    paddleY -= 7;
+  }
+
+  x += dx;
+  y += dy;
+
+  requestAnimationFrame(draw);
+}
+
+draw();
+</script>
 </body>
 </html>
